@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 import { toast } from "sonner";
@@ -41,7 +42,7 @@ export default function NotesPanel({
   //Wall Calendar Aesthetic
   //Integrated Notes Section
   //Fully Responsive Design
-  //
+  //theme switching based on the image
 
   const addEvent = () => {
     if (!selectedDate) {
@@ -114,7 +115,7 @@ export default function NotesPanel({
 
       <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
         <h5 className="text-xs font-semibold text-gray-400 uppercase px-1">
-          Agenda: {selectedDate?.toDateString()}
+          Today's Date: {selectedDate?.toDateString()}
         </h5>
         {filteredEvents.length > 0 ? (
           filteredEvents.map((event) => (

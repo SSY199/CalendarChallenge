@@ -1,72 +1,74 @@
 "use client";
-import { eachDayOfInterval, startOfWeek, startOfMonth, isSameDay, isSameMonth, addDays } from "date-fns";
+import { eachDayOfInterval, startOfWeek, startOfMonth, isSameDay, isSameMonth, addDays, isAfter, isBefore, format } from "date-fns";
 import React, { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { format } from "date-fns";
-
 
 type Props = {
-  onSelectDate: (date: Date) => void;
-  selectedDate: Date | null;
+  startDate: Date | null;
+  endDate: Date | null;
+  onChangeRange: (start: Date | null, end: Date | null) => void;
 };
 
-const CalendarGrid = ({ onSelectDate, selectedDate }: Props) => {
+const CalendarGrid = ({ startDate, endDate, onChangeRange }: Props) => {
   const [currentDate, setCurrentDate] = useState(new Date());
-
-  const nextMonth = () =>
-    setCurrentDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
-
-  const prevMonth = () =>
-    setCurrentDate((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
 
   const monthStart = startOfMonth(currentDate);
   const gridStart = startOfWeek(monthStart, { weekStartsOn: 0 });
-  const startDateToDisplay = startOfWeek(monthStart, { weekStartsOn: 0 });
-
-  const daysInGrid = eachDayOfInterval({ start: startDateToDisplay, end: addDays(gridStart, 41) });
+  const daysInGrid = eachDayOfInterval({ start: gridStart, end: addDays(gridStart, 41) });
 
   const handleClick = (day: Date) => {
-    onSelectDate(day); 
+    if (!startDate || (startDate && endDate)) {
+      onChangeRange(day, null);
+    } else {
+      if (isBefore(day, startDate)) {
+        onChangeRange(day, null);
+      } else {
+        onChangeRange(startDate, day);
+      }
+    }
+  };
+
+  const isInRange = (day: Date) => {
+    if (!startDate || !endDate) return false;
+    return isAfter(day, startDate) && isBefore(day, endDate);
   };
 
   return (
     <div className="w-full">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold dark:text-white">
-          {format(currentDate, "MMMM yyyy")}
-        </h2>
-
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-bold dark:text-white">{format(currentDate, "MMMM yyyy")}</h2>
         <div className="flex gap-2">
-          <button title="Previous Month" type="button" onClick={prevMonth} className="p-2 hover:bg-gray-200 dark:hover:bg-neutral-700 bg-amber-50 rounded-full">
-            <ChevronLeft size={18} />
+          <button title="Previous Month" onClick={() => setCurrentDate(addDays(monthStart, -1))} className="p-2 bg-blue-50 dark:bg-neutral-800 rounded-full hover:scale-110 transition">
+            <ChevronLeft size={18} className="dark:text-white" />
           </button>
-          <button title="Next Month" type="button" onClick={nextMonth} className="p-2 hover:bg-gray-200 dark:hover:bg-neutral-700 bg-amber-50 rounded-full">
-            <ChevronRight size={18} />
+          <button title="Next Month" onClick={() => setCurrentDate(addDays(monthStart, 32))} className="p-2 bg-blue-50 dark:bg-neutral-800 rounded-full hover:scale-110 transition">
+            <ChevronRight size={18} className="dark:text-white" />
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-7 mb-2 text-center text-xs font-semibold text-gray-500 uppercase">
-        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-          <div key={d}>{d}</div>
-        ))}
+      <div className="grid grid-cols-7 mb-4 text-center text-xs font-bold text-gray-400 uppercase tracking-widest">
+        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(d => <div key={d}>{d}</div>)}
       </div>
 
-      <div className="grid grid-cols-7 gap-y-2">
+      <div className="grid grid-cols-7 gap-y-1">
         {daysInGrid.map((day) => {
           const isCurrentMonth = isSameMonth(day, monthStart);
-          const isSelected = selectedDate ? isSameDay(day, selectedDate) : false;
+          const isStart = startDate && isSameDay(day, startDate);
+          const isEnd = endDate && isSameDay(day, endDate);
+          const inRange = isInRange(day);
 
           return (
             <button
-              key={day.toString()}
+              key={day.toISOString()}
               onClick={() => handleClick(day)}
-              type="button"
-              aria-label={`Select ${format(day, "MMMM d, yyyy")}`}
-              className={`
-                h-10 w-full flex items-center justify-center rounded-full text-sm transition
-                ${isCurrentMonth ? "text-gray-700 dark:text-gray-200" : "text-gray-300 dark:text-gray-600"}
-                ${isSelected ? "bg-blue-600 text-white font-bold hover:bg-blue-700" : "hover:bg-gray-100 dark:hover:bg-neutral-700"}
+              className={`h-10 w-full flex items-center justify-center text-sm transition-all
+                ${!isCurrentMonth ? "opacity-20" : "opacity-100"}
+                ${inRange ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300" : ""}
+                ${isStart ? "bg-blue-600 text-white font-bold rounded-l-full" : ""}
+                ${isEnd ? "bg-blue-600 text-white font-bold rounded-r-full" : ""}
+                ${isStart && !endDate ? "rounded-full" : ""}
+                ${!isStart && !isEnd && !inRange ? "hover:bg-gray-200 dark:hover:bg-neutral-800 dark:text-white rounded-full" : ""}
               `}
             >
               {format(day, "d")}
