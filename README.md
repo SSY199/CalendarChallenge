@@ -5,8 +5,6 @@ A polished, high-performance interactive calendar built as part of the **takeUfo
 ## 🚀 Live Demo
 [(https://calendar-challenge-omega.vercel.app/)]
 
-## 🎥 Video Walkthrough
-[Insert your Loom/YouTube Link here]
 
 ## ✨ Key Features
 
@@ -29,7 +27,7 @@ A polished, high-performance interactive calendar built as part of the **takeUfo
 
 1. **Clone the repository:**
    ```bash
-   git clone [https://github.com/SSY199/calendar-challenge.git](https://github.com/SSY199/calendar-challenge.git)
+   git clone [https://github.com/SSY199/calendar-challenge.git]
 2. **Install dependencies:
 
 Bash
