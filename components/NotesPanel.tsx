@@ -11,22 +11,26 @@ interface Event {
   date: string;
 }
 
-export default function NotesPanel({ selectedDate }: { selectedDate: Date | null }) {
+export default function NotesPanel({
+  selectedDate,
+}: {
+  selectedDate: Date | null;
+}) {
   const [events, setEvents] = useState<Event[]>([]);
   const [time, setTime] = useState("09:00");
   const [task, setTask] = useState("");
   const [isLoaded, setIsLoaded] = useState(false);
 
- useEffect(() => {
-  try {
-    const stored = localStorage.getItem("calendar-events");
-    if (stored) setEvents(JSON.parse(stored));
-  } catch (e) {
-    console.error("Invalid JSON in localStorage", e);
-  }
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("calendar-events");
+      if (stored) setEvents(JSON.parse(stored));
+    } catch (e) {
+      console.error("Invalid JSON in localStorage", e);
+    }
 
-  setIsLoaded(true);
-}, []);
+    setIsLoaded(true);
+  }, []);
 
   // Save to localStorage whenever events state changes
   useEffect(() => {
@@ -36,11 +40,14 @@ export default function NotesPanel({ selectedDate }: { selectedDate: Date | null
   }, [events, isLoaded]);
 
   const addEvent = () => {
-    if (!task.trim() || !selectedDate) {
+    if (!selectedDate) {
+      toast.error("Please select a date first");
+      return;
+    }
+    if (!task.trim()) {
       toast.error("Please provide a task description");
       return;
     }
-
     const newEvent: Event = {
       id: crypto.randomUUID(),
       time,
@@ -57,14 +64,18 @@ export default function NotesPanel({ selectedDate }: { selectedDate: Date | null
 
   const deleteEvent = (id: string) => {
     setEvents((prev) => prev.filter((e) => e.id !== id));
-    toast.info("Task removed");
+    if (!isLoaded)
+      return (
+        <div className="animate-pulse bg-gray-100 dark:bg-neutral-800 h-40 rounded-xl" />
+      );
   };
 
   const filteredEvents = events
     .filter((e) => e.date === selectedDate?.toDateString())
     .sort((a, b) => a.time.localeCompare(b.time));
 
-  if (!isLoaded) return <div className="animate-pulse bg-gray-100 h-40 rounded-xl" />;
+  if (!isLoaded)
+    return <div className="animate-pulse bg-gray-100 h-40 rounded-xl" />;
 
   return (
     <div className="flex flex-col gap-4">
@@ -111,7 +122,9 @@ export default function NotesPanel({ selectedDate }: { selectedDate: Date | null
                 <p className="text-xs font-bold text-blue-600 uppercase">
                   {event.time || "No Time"}
                 </p>
-                <p className="text-sm text-gray-800 dark:text-gray-200">{event.task}</p>
+                <p className="text-sm text-gray-800 dark:text-gray-200">
+                  {event.task}
+                </p>
               </div>
               <button
                 title="Delete Event"
@@ -123,7 +136,9 @@ export default function NotesPanel({ selectedDate }: { selectedDate: Date | null
             </div>
           ))
         ) : (
-          <p className="text-center text-gray-400 text-sm py-4 italic">No tasks scheduled.</p>
+          <p className="text-center text-gray-400 text-sm py-4 italic">
+            No tasks scheduled.
+          </p>
         )}
       </div>
     </div>
