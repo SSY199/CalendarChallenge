@@ -32,12 +32,16 @@ export default function NotesPanel({
     setIsLoaded(true);
   }, []);
 
-  // Save to localStorage whenever events state changes
   useEffect(() => {
     if (isLoaded) {
       localStorage.setItem("calendar-events", JSON.stringify(events));
     }
   }, [events, isLoaded]);
+
+  //Wall Calendar Aesthetic
+  //Integrated Notes Section
+  //Fully Responsive Design
+  //
 
   const addEvent = () => {
     if (!selectedDate) {

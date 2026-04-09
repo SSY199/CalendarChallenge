@@ -11,8 +11,5 @@ export const sendNotification = (title: string, body: string): void => {
       .then((permission) => {
         if (permission === "granted") show();
       })
-      .catch(() => {
-        // Permission request failed or was interrupted; silently ignore
-      });
   }
 };
