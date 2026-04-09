@@ -28,15 +28,11 @@ A polished, high-performance interactive calendar built as part of the **takeUfo
 1. **Clone the repository:**
    ```bash
    git clone [https://github.com/SSY199/calendar-challenge.git]
-2. **Install dependencies:
 
-Bash
-npm install
-Run the development server:
+2. **Commands**
+   ```bash
+   npm install
 
-Bash
-npm run dev
-Open http://localhost:3000 in your browser to view the application.
 
 🧠 Design & Engineering Decisions
 Modular Architecture: I broke the UI into highly focused, separate components (CalendarGrid, NotesPanel, ThemeToggle, WallCalendar) to ensure maintainability, clean prop drilling, and separation of concerns.
