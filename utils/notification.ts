@@ -1,3 +1,4 @@
+
 export const sendNotification = (title: string, body: string): void => {
   // Guard for SSR / non-browser environments
   if (typeof window === "undefined" || !("Notification" in window)) return;

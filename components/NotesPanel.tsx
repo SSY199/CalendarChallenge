@@ -1,5 +1,7 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
-import React, { useState } from "react";
+import { toast } from "sonner";
+import React, { useState, useEffect } from "react";
 import { Trash2, Plus } from "lucide-react";
 
 interface Event {
@@ -8,41 +10,61 @@ interface Event {
   task: string;
   date: string;
 }
-let memoryStore: Event[] = [];
 
 export default function NotesPanel({ selectedDate }: { selectedDate: Date | null }) {
-  const [events, setEvents] = useState<Event[]>(memoryStore);
+  const [events, setEvents] = useState<Event[]>([]);
   const [time, setTime] = useState("09:00");
   const [task, setTask] = useState("");
+  const [isLoaded, setIsLoaded] = useState(false);
 
-  const persist = (updated: Event[]) => {
-    const load = () => {
-      memoryStore = updated;
-      setEvents(updated);
+ useEffect(() => {
+  try {
+    const stored = localStorage.getItem("calendar-events");
+    if (stored) setEvents(JSON.parse(stored));
+  } catch (e) {
+    console.error("Invalid JSON in localStorage", e);
+  }
+
+  setIsLoaded(true);
+}, []);
+
+  // Save to localStorage whenever events state changes
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem("calendar-events", JSON.stringify(events));
     }
-    load();
-  };
+  }, [events, isLoaded]);
 
   const addEvent = () => {
-    if (!task.trim() || !selectedDate) return;
+    if (!task.trim() || !selectedDate) {
+      toast.error("Please provide a task description");
+      return;
+    }
+
     const newEvent: Event = {
       id: crypto.randomUUID(),
       time,
       task: task.trim(),
       date: selectedDate.toDateString(),
     };
-    persist([...events, newEvent]);
+
+    setEvents((prev) => [...prev, newEvent]);
     setTask("");
-    setTime("");
+    toast.success("Task Added", {
+      description: `${task.trim()} scheduled for ${time}`,
+    });
   };
 
   const deleteEvent = (id: string) => {
-    persist(events.filter((e) => e.id !== id));
+    setEvents((prev) => prev.filter((e) => e.id !== id));
+    toast.info("Task removed");
   };
 
   const filteredEvents = events
     .filter((e) => e.date === selectedDate?.toDateString())
     .sort((a, b) => a.time.localeCompare(b.time));
+
+  if (!isLoaded) return <div className="animate-pulse bg-gray-100 h-40 rounded-xl" />;
 
   return (
     <div className="flex flex-col gap-4">
@@ -52,7 +74,7 @@ export default function NotesPanel({ selectedDate }: { selectedDate: Date | null
         </h4>
         <div className="flex flex-col gap-2">
           <input
-            placeholder="09:00"
+            placeholder="Time"
             type="time"
             value={time}
             onChange={(e) => setTime(e.target.value)}
@@ -68,8 +90,7 @@ export default function NotesPanel({ selectedDate }: { selectedDate: Date | null
           />
           <button
             onClick={addEvent}
-            disabled={!task.trim() || !selectedDate}
-            className="flex items-center justify-center gap-2 bg-blue-600 text-white p-2 rounded-lg font-bold hover:bg-blue-700 transition disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex items-center justify-center gap-2 bg-blue-600 text-white p-2 rounded-lg font-bold hover:bg-blue-700 transition"
           >
             <Plus size={18} /> Add Task
           </button>
@@ -77,11 +98,14 @@ export default function NotesPanel({ selectedDate }: { selectedDate: Date | null
       </div>
 
       <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+        <h5 className="text-xs font-semibold text-gray-400 uppercase px-1">
+          Agenda: {selectedDate?.toDateString()}
+        </h5>
         {filteredEvents.length > 0 ? (
           filteredEvents.map((event) => (
             <div
               key={event.id}
-              className="flex justify-between items-center p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl"
+              className="flex justify-between items-center p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl animate-in fade-in slide-in-from-bottom-2"
             >
               <div>
                 <p className="text-xs font-bold text-blue-600 uppercase">
@@ -90,8 +114,7 @@ export default function NotesPanel({ selectedDate }: { selectedDate: Date | null
                 <p className="text-sm text-gray-800 dark:text-gray-200">{event.task}</p>
               </div>
               <button
-                type="button"
-                title="Delete"
+                title="Delete Event"
                 onClick={() => deleteEvent(event.id)}
                 className="text-red-400 hover:text-red-600 transition"
               >
@@ -100,7 +123,7 @@ export default function NotesPanel({ selectedDate }: { selectedDate: Date | null
             </div>
           ))
         ) : (
-          <p className="text-center text-gray-400 text-sm py-4">No events for this date.</p>
+          <p className="text-center text-gray-400 text-sm py-4 italic">No tasks scheduled.</p>
         )}
       </div>
     </div>
